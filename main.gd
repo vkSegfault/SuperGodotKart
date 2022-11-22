@@ -6,7 +6,7 @@
 extends Node
 
 var ADDRESS = "127.0.0.1" # = get_ip_text() #$Lobby/TextEdit.text #"127.0.0.1"
-const PORT = 2077
+const PORT = 12077
 const MAX_PLAYERS = 8
 
 var temp_lineedit_ip = LineEdit.new()
@@ -73,7 +73,7 @@ func _on_host_button_pressed():
 	
 	$Lobby.visible = false
 	temp_lineedit_ip.visible = false
-	if !server:   # spawn only if wea re not the server
+	if !server:   # spawn only if we ere not the server
 		spawn_car()
 	spawn_label("SERVER")
 

@@ -12,7 +12,7 @@ var _steer_target := 0.0
 
 func _enter_tree():
 	# synchronized set autothority should be done here but when it's done synchronizer is null (probably Node is not initialized yet)
-	pass
+	get_node("..").set_multiplayer_authority(str(get_node("..").name).to_int())
 
 func _ready():
 	# FUCKING IMPORTANT
@@ -20,7 +20,7 @@ func _ready():
 	# without it only server would be able to control all spawned cars
 	# go up, because we set name of instance which here is `CarBase` root node, if we just call name it will be from current node that this script is atatched to
 	print("Name of Car instance: " + str(get_node("..").name))  
-	synchronizer.set_multiplayer_authority(str(get_node("..").name).to_int())   # here using synchronizer node but we can use any node we want
+	#synchronizer.set_multiplayer_authority(str(get_node("..").name).to_int())   # here using synchronizer node but we can use any node we want
 	#get_node("..").set_multiplayer_authority(str(get_node("..").name).to_int())   # here setting authority for CarBase root node
 	print("Remote sender id: " + str(multiplayer.get_remote_sender_id()))
 	
@@ -31,8 +31,8 @@ func _ready():
 	camera.current = synchronizer.is_multiplayer_authority()
 
 func _physics_process(delta: float):
-	if synchronizer.is_multiplayer_authority():
-	#if is_multiplayer_authority():   # we can check if this node (or any parent node becausde inheritance) is authority
+	#if synchronizer.is_multiplayer_authority():
+	if is_multiplayer_authority():   # we can check if this node (or any parent node becausde inheritance) is authority
 		var fwd_mps := (linear_velocity * transform.basis).x
 
 		_steer_target = Input.get_axis(&"turn_right", &"turn_left")

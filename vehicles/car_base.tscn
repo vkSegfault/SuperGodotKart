@@ -21,6 +21,9 @@ properties/1/sync = true
 properties/2/path = NodePath("Body:scale")
 properties/2/spawn = true
 properties/2/sync = true
+properties/3/path = NodePath("Body/CameraBase:position")
+properties/3/spawn = true
+properties/3/sync = true
 
 [node name="CarBase" type="Node3D"]
 
