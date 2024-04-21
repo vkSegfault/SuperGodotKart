@@ -15,7 +15,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="HostButton" type="Button" parent="Lobby"]
-anchors_preset = -1
+layout_mode = 0
 anchor_left = 6.15
 anchor_top = 4.15
 anchor_right = 9.575
@@ -24,7 +24,7 @@ offset_right = -3.05176e-05
 text = "Host"
 
 [node name="JoinButton" type="Button" parent="Lobby"]
-anchors_preset = -1
+layout_mode = 0
 anchor_left = 14.525
 anchor_top = 4.1
 anchor_right = 17.425
