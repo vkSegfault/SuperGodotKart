@@ -12,6 +12,8 @@ const MAX_PLAYERS = 8
 var temp_lineedit_ip = LineEdit.new()
 var server: bool
 
+var peer = ENetMultiplayerPeer.new()
+
 #var scene_multi_api = SceneMultiplayer.new()
 
 #const map1 = preload("res://map1.tscn")
@@ -55,31 +57,33 @@ func _ready():
 
 
 func _process(delta):
-	if multiplayer.has_multiplayer_peer():
-		#print("polling")
-		multiplayer.poll()
-		#print(multiplayer.get_peers())
+	pass
+	# is below polling even needed?
+	#if multiplayer.has_multiplayer_peer():
+		##print("polling")
+		#multiplayer.poll()
+		##print(multiplayer.get_peers())
 
 func _on_host_button_pressed():
 	# multi
 	print("_on_host_button_pressed")
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_server(PORT, MAX_PLAYERS)
+	#var peer = ENetMultiplayerPeer.new()
+	peer.create_server(PORT)
 	#get_tree().set_multiplayer(multiplayer, self.get_path())
 	multiplayer.multiplayer_peer = peer
 	
 	# make signal connection, not run immediatelly, it will run when `peer_connected` signal is trigerred
-	peer.peer_connected.connect(_on_peer_connected)
+	peer.peer_connected.connect(_on_peer_connected)  # _on_peer_connected is going to spawn car for every other peer (not server)
+	if !server:   # spawn only if we are not the SERVER ONLY (dedicated server without acting as peer)
+		spawn_car()  # spawn car locally (on server)
 	
 	$Lobby.visible = false
 	temp_lineedit_ip.visible = false
-	if !server:   # spawn only if we ere not the server
-		spawn_car()
 	spawn_label("SERVER")
 
 func _on_join_button_pressed():
 	print("_on_join_button_pressed")
-	var peer = ENetMultiplayerPeer.new()
+	#var peer = ENetMultiplayerPeer.new()
 	#ADDRESS = $Lobby/TextEdit.text
 	print("LineEdit text: " + temp_lineedit_ip.get_text())
 	temp_lineedit_ip.visible = false
@@ -91,7 +95,7 @@ func _on_join_button_pressed():
 	$Lobby.visible = false
 	spawn_label("CLIENT")
 
-# to make spawning on clients side work we need both MultiSpawner Node with car scene and below signal execute which is strange
+# to make spawning on clients side work we need both MultiSpawner Node with car scene and below signal spawning exact sam car scene
 func _on_peer_connected(peer_id):
 	# this wont be executed by server - only peers
 	# we need to spawn car on server manually
@@ -101,6 +105,7 @@ func _on_peer_connected(peer_id):
 	# needs await a little because rpc is not executed - ??
 	await get_tree().create_timer(1).timeout
 	rpc("rpc_func")   # execute this remotely (from point of view of server because only on_host_join this signal is connected)
+	print( "Multiplayer get peers: " + str(multiplayer.get_peers()) )
 
 
 func get_ip_text():
@@ -119,9 +124,9 @@ func spawn_car(id = 1):
 	self.add_child(autko)
 
 
-@rpc
+@rpc("any_peer", "call_local")
 func rpc_func():
-	print("Should be called only remotely")
+	print("Should be called remotely (any_peer) and on servcer (call_local)")
 	var ui = LineEdit.new()
 	ui.position.x = 200
 	self.add_child(ui)

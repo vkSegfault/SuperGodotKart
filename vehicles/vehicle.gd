@@ -3,15 +3,19 @@ extends VehicleBody3D
 const STEER_SPEED = 1.5
 const STEER_LIMIT = 0.4
 
+static var NUM_OF_RUN = 0
+
 @export var engine_force_value := 40.0
 
 var _steer_target := 0.0
 
 @onready var synchronizer = $MultiplayerSynchronizer
-@onready var camera = $CameraBase/Camera3D
+#@onready var camera = $CameraBase/Camera3D
+@onready var camera = $Camera3D
 
 func _enter_tree():
 	# synchronized set autothority should be done here but when it's done synchronizer is null (probably Node is not initialized yet)
+	# authroity should be root of scene
 	get_node("..").set_multiplayer_authority(str(get_node("..").name).to_int())
 
 func _ready():
@@ -22,13 +26,18 @@ func _ready():
 	print("Name of Car instance: " + str(get_node("..").name))  
 	#synchronizer.set_multiplayer_authority(str(get_node("..").name).to_int())   # here using synchronizer node but we can use any node we want
 	#get_node("..").set_multiplayer_authority(str(get_node("..").name).to_int())   # here setting authority for CarBase root node
-	print("Remote sender id: " + str(multiplayer.get_remote_sender_id()))
 	
 	#var ms = MultiplayerSpawner.new()
 	
-	
-	# Set current camera only this instance itsefl
-	camera.current = synchronizer.is_multiplayer_authority()
+	print("###################")
+	print("Is multiplayer authority: " + str(is_multiplayer_authority()))
+	print("Remote sender id: " + str(multiplayer.get_remote_sender_id()))
+	# Set current camera only to this instance itsefl
+	camera.current = is_multiplayer_authority()
+	NUM_OF_RUN += 1
+	print("_ready of vehicle executed " + str(NUM_OF_RUN) + " times" )
+	print("unique id: " + str(multiplayer.get_unique_id())  )
+	print("###################")
 
 func _physics_process(delta: float):
 	#if synchronizer.is_multiplayer_authority():
@@ -62,3 +71,14 @@ func _physics_process(delta: float):
 			brake = 0.0
 
 		steering = move_toward(steering, _steer_target, STEER_SPEED * delta)
+
+
+func _on_button_pressed():
+	print( "Is camera current: " + str(camera.current) )
+	camera.make_current()
+	print( "Is camera current: " + str(camera.current) )
+	#camera.rotate_x(30)
+
+
+func _on_camera_3d_tree_exited():
+	print( "Camera3D node has been deleted" )

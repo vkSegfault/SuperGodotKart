@@ -1,9 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://c1uai3rvx8hul"]
+[gd_scene load_steps=7 format=3 uid="uid://c1uai3rvx8hul"]
 
 [ext_resource type="Script" path="res://vehicles/vehicle.gd" id="1_r806m"]
-[ext_resource type="ArrayMesh" uid="uid://cyhtf686i1ycm" path="res://vehicles/meshes/wheel.res" id="2_0cso8"]
-[ext_resource type="ArrayMesh" uid="uid://dc53fhn32fvx6" path="res://vehicles/meshes/minivan.res" id="3_tkg08"]
-[ext_resource type="Script" path="res://vehicles/follow_camera.gd" id="4_6igu8"]
+[ext_resource type="ArrayMesh" uid="uid://cncwd2gkbh3ow" path="res://vehicles/meshes/wheel.res" id="2_0cso8"]
+[ext_resource type="ArrayMesh" uid="uid://ol46g2vyjwdj" path="res://vehicles/meshes/minivan.res" id="3_tkg08"]
 
 [sub_resource type="PhysicsMaterial" id="1"]
 friction = 0.5
@@ -14,23 +13,20 @@ size = Vector3(0.954078, 1, 2.32662)
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_de4m6"]
 properties/0/path = NodePath("Body:position")
 properties/0/spawn = true
-properties/0/sync = true
+properties/0/replication_mode = 1
 properties/1/path = NodePath("Body:rotation")
 properties/1/spawn = true
-properties/1/sync = true
+properties/1/replication_mode = 1
 properties/2/path = NodePath("Body:scale")
 properties/2/spawn = true
-properties/2/sync = true
-properties/3/path = NodePath("Body/CameraBase:position")
-properties/3/spawn = true
-properties/3/sync = true
+properties/2/replication_mode = 1
 
 [node name="CarBase" type="Node3D"]
 
 [node name="Body" type="VehicleBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00169557, 0.222867, -0.0955184)
-center_of_mass_mode = 1
 physics_material_override = SubResource("1")
+center_of_mass_mode = 1
 script = ExtResource("1_r806m")
 
 [node name="Wheel1" type="VehicleWheel3D" parent="Body"]
@@ -99,18 +95,20 @@ mesh = ExtResource("3_tkg08")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.588269, 0.0774262)
 shape = SubResource("7")
 
-[node name="CameraBase" type="Node3D" parent="Body"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.97449, 0)
-
-[node name="Camera3D" type="Camera3D" parent="Body/CameraBase"]
-transform = Transform3D(-0.709652, -0.170177, 0.683691, -2.11161e-08, 0.970391, 0.241539, -0.704552, 0.171409, -0.68864, 3.44908, 2.03236, -4.39379)
+[node name="Camera3D" type="Camera3D" parent="Body"]
+transform = Transform3D(-1, 0, 8.74228e-08, 2.26267e-08, 0.965926, 0.258819, -8.44439e-08, 0.258819, -0.965926, 0.00169557, 1.93177, -2.76164)
 current = true
-fov = 74.0
-near = 0.1
-script = ExtResource("4_6igu8")
-min_distance = 3.0
-height = 1.25
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="Body"]
 root_path = NodePath("../..")
 replication_config = SubResource("SceneReplicationConfig_de4m6")
+
+[node name="Button" type="Button" parent="."]
+offset_left = 890.0
+offset_top = 38.0
+offset_right = 1090.0
+offset_bottom = 69.0
+text = "MAKE CAMERA CURRENT"
+
+[connection signal="tree_exited" from="Body/Camera3D" to="Body" method="_on_camera_3d_tree_exited"]
+[connection signal="pressed" from="Button" to="Body" method="_on_button_pressed"]
