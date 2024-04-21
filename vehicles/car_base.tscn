@@ -22,12 +22,12 @@ properties/2/spawn = true
 properties/2/replication_mode = 1
 
 [node name="CarBase" type="Node3D"]
+script = ExtResource("1_r806m")
 
 [node name="Body" type="VehicleBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00169557, 0.222867, -0.0955184)
 physics_material_override = SubResource("1")
 center_of_mass_mode = 1
-script = ExtResource("1_r806m")
 
 [node name="Wheel1" type="VehicleWheel3D" parent="Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.573678, 0.115169, 1.10416)
@@ -99,8 +99,7 @@ shape = SubResource("7")
 transform = Transform3D(-1, 0, 8.74228e-08, 2.26267e-08, 0.965926, 0.258819, -8.44439e-08, 0.258819, -0.965926, 0.00169557, 1.93177, -2.76164)
 current = true
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="Body"]
-root_path = NodePath("../..")
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_de4m6")
 
 [node name="Button" type="Button" parent="."]
@@ -110,5 +109,6 @@ offset_right = 1090.0
 offset_bottom = 69.0
 text = "MAKE CAMERA CURRENT"
 
+[connection signal="tree_entered" from="Body/Camera3D" to="Body" method="_on_camera_3d_tree_entered"]
 [connection signal="tree_exited" from="Body/Camera3D" to="Body" method="_on_camera_3d_tree_exited"]
 [connection signal="pressed" from="Button" to="Body" method="_on_button_pressed"]

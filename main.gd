@@ -1,8 +1,3 @@
-# *******************************************
-# For Headless mode run:
-# ./SuperGodotKart.x86_64 --server --headless
-# *******************************************
-
 extends Node
 
 var ADDRESS = "127.0.0.1" # = get_ip_text() #$Lobby/TextEdit.text #"127.0.0.1"
@@ -10,20 +5,8 @@ const PORT = 12077
 const MAX_PLAYERS = 8
 
 var temp_lineedit_ip = LineEdit.new()
-var server: bool
 
 var peer = ENetMultiplayerPeer.new()
-
-#var scene_multi_api = SceneMultiplayer.new()
-
-#const map1 = preload("res://map1.tscn")
-
-func _enter_tree():
-	var cmd_args = OS.get_cmdline_args()
-	print("CMD LINE ARGS: ")
-	for i in cmd_args:
-		if i == "--server":
-			server = true
 
 func _ready():
 	print("_ready")
@@ -38,22 +21,6 @@ func _ready():
 	temp_lineedit_ip.position.x = 600
 	temp_lineedit_ip.position.y = 300
 	self.add_child(temp_lineedit_ip)
-	
-	# for hosting server in headless mode
-	if server:
-		_on_host_button_pressed()
-	# UPNP
-	#var upnp = UPNP.new()
-	#var res = upnp.discover(2000, 2, "InternetGatewayDevice")
-	#var upnp_count = upnp.get_device_count()
-	#print("UPNP Discoved devices count: " + str(upnp_count))
-	#if upnp_count == 0:
-	#	print("No PNPP devices found - make sure to enable it on Router")
-	#else:
-	#	if res == UPNP.UPNP_RESULT_SUCCESS:
-	#		print("UPNP successfully retrieved inet devices")
-	#		if upnp.get_gateway() and upnp.get_gateway().is_valid_gateway():
-	#			print("UPNP: Found gateway and it's valid")
 
 
 func _process(delta):
@@ -65,17 +32,13 @@ func _process(delta):
 		##print(multiplayer.get_peers())
 
 func _on_host_button_pressed():
-	# multi
 	print("_on_host_button_pressed")
-	#var peer = ENetMultiplayerPeer.new()
-	peer.create_server(PORT)
-	#get_tree().set_multiplayer(multiplayer, self.get_path())
+	peer.create_server(PORT, MAX_PLAYERS)
 	multiplayer.multiplayer_peer = peer
 	
 	# make signal connection, not run immediatelly, it will run when `peer_connected` signal is trigerred
-	peer.peer_connected.connect(_on_peer_connected)  # _on_peer_connected is going to spawn car for every other peer (not server)
-	if !server:   # spawn only if we are not the SERVER ONLY (dedicated server without acting as peer)
-		spawn_car()  # spawn car locally (on server)
+	multiplayer.peer_connected.connect(_on_peer_connected)  # _on_peer_connected is going to spawn car for every other peer (not server)
+	spawn_car()  # spawn car locally (on server)
 	
 	$Lobby.visible = false
 	temp_lineedit_ip.visible = false
@@ -83,7 +46,6 @@ func _on_host_button_pressed():
 
 func _on_join_button_pressed():
 	print("_on_join_button_pressed")
-	#var peer = ENetMultiplayerPeer.new()
 	#ADDRESS = $Lobby/TextEdit.text
 	print("LineEdit text: " + temp_lineedit_ip.get_text())
 	temp_lineedit_ip.visible = false
