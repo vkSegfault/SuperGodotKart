@@ -9,6 +9,7 @@ var temp_lineedit_ip = LineEdit.new()
 var peer = ENetMultiplayerPeer.new()
 
 func _ready():
+	
 	print("_ready")
 	print("IP Address: " + str(IP.get_local_addresses().size()) )
 	for ip in IP.get_local_addresses():
@@ -39,6 +40,7 @@ func _on_host_button_pressed():
 	
 	# make signal connection, not run immediatelly, it will run when `peer_connected` signal is trigerred
 	multiplayer.peer_connected.connect(_on_peer_connected)  # _on_peer_connected is going to spawn car for every other peer (not server)
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	spawn_car()  # spawn car locally (on server)
 	
 	$Lobby.visible = false
@@ -70,6 +72,9 @@ func _on_peer_connected(peer_id):
 	rpc("rpc_func")   # execute this remotely (from point of view of server because only on_host_join this signal is connected)
 	print( "Multiplayer get peers: " + str(multiplayer.get_peers()) )
 
+func _on_peer_disconnected(peer_id):
+	print("Disconeccted peer: " + str(peer_id))
+	despawn_car(peer_id)
 
 func get_ip_text():
 	#if $Lobby/LineEdit.get_text() != "":
@@ -85,6 +90,12 @@ func spawn_car(id = 1):
 	autko.name = str(id)   # set particular instance name
 	#autko.translate(Vector3(10, 0, 2))
 	self.add_child(autko)
+
+
+func despawn_car(id = 1):
+	if not self.has_node(str(id)):
+		return
+	self.get_node(str(id)).queue_free()
 
 
 @rpc("any_peer", "call_local")

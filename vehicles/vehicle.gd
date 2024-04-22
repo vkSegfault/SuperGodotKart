@@ -83,6 +83,7 @@ func _physics_process(delta: float):
 
 
 func _process(delta):
+	return
 	if multiplayer.get_peers().size() > 0:
 		print( str(multiplayer.get_unique_id()) + " has these peers connected: " + str(multiplayer.get_peers()) )
 
