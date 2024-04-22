@@ -24,6 +24,7 @@ func _ready():
 
 
 func _process(delta):
+	#print( multiplayer.get_instance_id() )
 	pass
 	# is below polling even needed?
 	#if multiplayer.has_multiplayer_peer():

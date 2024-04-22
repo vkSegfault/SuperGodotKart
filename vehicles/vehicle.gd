@@ -13,10 +13,13 @@ var _steer_target := 0.0
 #@onready var camera = $CameraBase/Camera3D
 @onready var camera = $Body/Camera3D
 
+# remember that everytime we join(add) new peer it's executed per new instances and on all already running instances (because it needs to repliacte to other instances)
+# when we have 2 running peers and joining as 3rd one: we will execute it 3 times (1 as authority and 2 as non-authority)
 func _enter_tree():
 	# synchronized set autothority should be done here but when it's done synchronizer is null (probably Node is not initialized yet)
 	# authroity should be root of scene
 	set_multiplayer_authority(str(name).to_int())
+	print("[vehicle.gd] Entered tree - instance " + str(name) + " set to authority")
 
 func _ready():
 	# FUCKING IMPORTANT
@@ -37,6 +40,8 @@ func _ready():
 	NUM_OF_RUN += 1
 	print("_ready of vehicle executed " + str(NUM_OF_RUN) + " times" )
 	print("unique id: " + str(multiplayer.get_unique_id())  )
+	print("[vehicle.gd] " + str(name) + " is multiplayer authority on " + str(multiplayer.get_unique_id()) + ": " + str(is_multiplayer_authority()) )
+	print("[vehicle.gd] " + "Camera " + str(name) + " is current on " + str(multiplayer.get_unique_id()) + ": " + str(camera.current) )
 	print("###################")
 
 func _physics_process(delta: float):
@@ -72,6 +77,14 @@ func _physics_process(delta: float):
 			car_body.brake = 0.0
 
 		car_body.steering = move_toward(car_body.steering, _steer_target, STEER_SPEED * delta)
+	else:
+		#print("It's not multiplayer authority!!!")
+		pass
+
+
+func _process(delta):
+	if multiplayer.get_peers().size() > 0:
+		print( str(multiplayer.get_unique_id()) + " has these peers connected: " + str(multiplayer.get_peers()) )
 
 
 func _on_button_pressed():
