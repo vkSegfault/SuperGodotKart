@@ -45,7 +45,9 @@ func _ready():
 	print("###################")
 
 func _physics_process(delta: float):
-	#if synchronizer.is_multiplayer_authority():
+	#if get_multiplayer_authority() == multiplayer.get_unique_id()   # this also checks if currently running instance is authority
+	# why is this important?
+	# it's because this exact script (alongside whole scene) is executed on all peers but should be only controlled by peer which is the owner of the car
 	if is_multiplayer_authority():   # we can check if this node (or any parent node becausde inheritance) is authority
 		var car_body: VehicleBody3D = $Body
 		var fwd_mps := (car_body.linear_velocity * car_body.transform.basis).x
@@ -86,14 +88,6 @@ func _process(delta):
 	return
 	if multiplayer.get_peers().size() > 0:
 		print( str(multiplayer.get_unique_id()) + " has these peers connected: " + str(multiplayer.get_peers()) )
-
-
-func _on_button_pressed():
-	print( "Is camera current: " + str(camera.current) )
-	camera.make_current()
-	print( "Is camera current: " + str(camera.current) )
-	#camera.rotate_x(30)
-
 
 func _on_camera_3d_tree_exited():
 	print( "Camera3D node has been deleted" )

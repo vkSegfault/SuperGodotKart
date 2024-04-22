@@ -8,7 +8,12 @@ var temp_lineedit_ip = LineEdit.new()
 
 var peer = ENetMultiplayerPeer.new()
 
+@onready var msg = $Chat/Message
+@onready var msg_window = $Chat/MessageWindow
+@onready var username = $Lobby/Username
+
 func _ready():
+	$Chat.visible = false
 	
 	print("_ready")
 	print("IP Address: " + str(IP.get_local_addresses().size()) )
@@ -19,8 +24,8 @@ func _ready():
 	temp_lineedit_ip.text = "127.0.0.1"
 	temp_lineedit_ip.placeholder_text = "127.0.0.1"
 	temp_lineedit_ip.expand_to_text_length = true
-	temp_lineedit_ip.position.x = 600
-	temp_lineedit_ip.position.y = 300
+	temp_lineedit_ip.position.x = 200
+	temp_lineedit_ip.position.y = 260
 	self.add_child(temp_lineedit_ip)
 
 
@@ -34,6 +39,9 @@ func _process(delta):
 		##print(multiplayer.get_peers())
 
 func _on_host_button_pressed():
+	if username.text == "":
+		$NoUsernameWarning.visible = true
+		return
 	print("_on_host_button_pressed")
 	peer.create_server(PORT, MAX_PLAYERS)
 	multiplayer.multiplayer_peer = peer
@@ -46,8 +54,13 @@ func _on_host_button_pressed():
 	$Lobby.visible = false
 	temp_lineedit_ip.visible = false
 	spawn_label("SERVER")
+	
+	$Chat.visible = true
 
 func _on_join_button_pressed():
+	if username.text == "":
+		$NoUsernameWarning.visible = true
+		return
 	print("_on_join_button_pressed")
 	#ADDRESS = $Lobby/TextEdit.text
 	print("LineEdit text: " + temp_lineedit_ip.get_text())
@@ -59,6 +72,8 @@ func _on_join_button_pressed():
 	
 	$Lobby.visible = false
 	spawn_label("CLIENT")
+	
+	$Chat.visible = true
 
 # to make spawning on clients side work we need both MultiSpawner Node with car scene and below signal spawning exact sam car scene
 func _on_peer_connected(peer_id):
@@ -109,3 +124,21 @@ func spawn_label(text: String):
 	var host_label = Label.new()
 	host_label.text = text
 	self.add_child(host_label)
+
+
+func _on_send_button_pressed():
+	# if there is nothing typed just skip sending message
+	if msg.text == "":
+		return
+	rpc( "rpc_send_message", str( username.text + "(" + str(multiplayer.get_unique_id()) + ")"), msg.text )
+	msg.text = ""
+	
+@rpc("any_peer", "call_local")
+func rpc_send_message(username, msg):
+	msg_window.text += str(str(username) + ": " + msg + "\n")
+	msg_window.scroll_vertical = 9999   # hack so that messages are auto scrolled to see only latest ones
+
+
+func _on_close_button_pressed():
+	$NoUsernameWarning.visible = false
+

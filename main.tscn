@@ -1,7 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://b2msv136hleos"]
+[gd_scene load_steps=4 format=3 uid="uid://b2msv136hleos"]
 
 [ext_resource type="PackedScene" uid="uid://dgjg1277k20sw" path="res://map1.tscn" id="1_3jbut"]
 [ext_resource type="Script" path="res://main.gd" id="1_6yvk6"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_epcb7"]
+properties/0/path = NodePath("Chat/MessageWindow:text")
+properties/0/spawn = true
+properties/0/replication_mode = 1
 
 [node name="Main" type="Node"]
 script = ExtResource("1_6yvk6")
@@ -20,23 +25,104 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="HostButton" type="Button" parent="Lobby"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 6.15
 anchor_top = 4.15
 anchor_right = 9.575
 anchor_bottom = 6.675
-offset_right = -3.05176e-05
+offset_left = -165.0
+offset_top = -66.0
+offset_right = -165.0
+offset_bottom = -66.0
 text = "Host"
 
 [node name="JoinButton" type="Button" parent="Lobby"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 14.525
 anchor_top = 4.1
 anchor_right = 17.425
 anchor_bottom = 6.6
-offset_top = -1.52588e-05
-offset_right = -6.10352e-05
+offset_left = -310.0
+offset_top = -64.0
+offset_right = -310.0
+offset_bottom = -64.0
 text = "Join"
+
+[node name="Username" type="LineEdit" parent="Lobby"]
+layout_mode = 0
+offset_left = 197.0
+offset_top = 40.0
+offset_right = 297.0
+offset_bottom = 71.0
+placeholder_text = "Username"
+
+[node name="Chat" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SendButton" type="Button" parent="Chat"]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 245.0
+offset_right = 883.0
+offset_bottom = 276.0
+text = "Send"
+
+[node name="Message" type="LineEdit" parent="Chat"]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 214.0
+offset_right = 986.0
+offset_bottom = 245.0
+placeholder_text = "Type messege..."
+
+[node name="MessageWindow" type="TextEdit" parent="Chat"]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 14.0
+offset_right = 1136.0
+offset_bottom = 214.0
+editable = false
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="Chat"]
+root_path = NodePath("../..")
+replication_config = SubResource("SceneReplicationConfig_epcb7")
+
+[node name="NoUsernameWarning" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -172.0
+offset_top = -82.0
+offset_right = -172.0
+offset_bottom = -82.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="NoUsernameWarning"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+scale = Vector2(2, 2)
+text = "Please add username!"
+
+[node name="CloseButton" type="Button" parent="NoUsernameWarning"]
+layout_mode = 0
+offset_left = 132.0
+offset_top = 46.0
+offset_right = 182.0
+offset_bottom = 77.0
+text = "Close"
 
 [connection signal="pressed" from="Lobby/HostButton" to="." method="_on_host_button_pressed"]
 [connection signal="pressed" from="Lobby/JoinButton" to="." method="_on_join_button_pressed"]
+[connection signal="pressed" from="Chat/SendButton" to="." method="_on_send_button_pressed"]
+[connection signal="pressed" from="NoUsernameWarning/CloseButton" to="." method="_on_close_button_pressed"]
