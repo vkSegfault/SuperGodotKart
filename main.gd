@@ -5,7 +5,6 @@ const PORT = 12077
 const MAX_PLAYERS = 8
 
 var temp_lineedit_ip = LineEdit.new()
-var peer = ENetMultiplayerPeer.new()
 @export var password: String
 
 @onready var msg = $Chat/Message
@@ -48,6 +47,7 @@ func _on_host_button_pressed():
 	print( "Password is: " + password )
 	print( "Peers before setting rpc password: " + str(multiplayer.get_peers()) )
 	
+	var peer = ENetMultiplayerPeer.new()
 	peer.create_server(PORT, MAX_PLAYERS)
 	multiplayer.multiplayer_peer = peer
 	
@@ -70,19 +70,27 @@ func _on_join_button_pressed():
 		return
 	
 	# first connect peer to server so we can later ask server for password
+	var peer = ENetMultiplayerPeer.new()
 	peer.create_client(ADDRESS, PORT)
 	multiplayer.multiplayer_peer = peer
+	# peer connecion starts here but will finish at unknown point in future - it's ASYNC !
 	
-	#if $Lobby/Password.text != password:
-		## we can either make rpc call from server to set this variable (but when? - some instances may not run already?)
-		## or make some getter func from peer to servert to fetch actual password
-		#print( "Provided password: " + $Lobby/Password.text + " Actual password: " + password )
-		#$NoPasswordWarning.visible = true
-		#return
-	#multiplayer.is_connected()
+	# wait until peer is connected to sever (so Synchronizer node will sync password values across all peers)
+	while peer.get_connection_status() != peer.CONNECTION_CONNECTED:
+		print( "-- PEER NOT CONNECTED --" )
+		await get_tree().create_timer(0.1).timeout
+	
+	if $Lobby/Password.text != password:
+		print( "Provided password: " + $Lobby/Password.text + " Actual password: " + password )
+		$NoPasswordWarning.visible = true
+		#multiplayer.multiplayer_peer = null  # remove peer
+		return
 	# not all nodes inside car scene are initialized in time (and server tries to call spawner node when there is still none)
-	#spawn_car(multiplayer.get_unique_id())
-	#rpc("spawn_car", multiplayer.get_unique_id() )
+	print( "-- PASSWORD CORRECT --" )
+	
+	#spawn_car().rpc( multiplayer.get_unique_id() )
+	rpc_id( 1, "spawn_car", multiplayer.get_unique_id() )  # run exactly on peer no. 1 which is server
+	print( "Multiplayer get peers: " + str(multiplayer.get_peers()) )
 	
 	#ADDRESS = $Lobby/TextEdit.text
 	print("LineEdit text: " + temp_lineedit_ip.get_text())
@@ -101,8 +109,9 @@ func _on_peer_connected(peer_id):
 	print("_on_peer_connected")
 	# somehow spawning remote nodes is safe when done inside _on_peer_connected but everywhere else it fails cause of not loaded nodes
 	# like it ensures that all nodes of car scene are loaded before server attempts to replicate it via MultiplayerSpawner node
-	spawn_car(peer_id)
+	#spawn_car(peer_id)
 	print("Peer Connected, peer_id: {0}".format([peer_id]))
+	print("Function executed on: " + str(multiplayer.get_unique_id()) )
 	
 	# needs await a little because rpc is not executed - ??
 	await get_tree().create_timer(1).timeout
@@ -110,6 +119,7 @@ func _on_peer_connected(peer_id):
 	print( "Multiplayer get peers: " + str(multiplayer.get_peers()) )
 
 func _on_peer_disconnected(peer_id):
+	print("_on_peer_disconnected")
 	print("Disconeccted peer: " + str(peer_id))
 	despawn_car(peer_id)
 
@@ -119,8 +129,10 @@ func get_ip_text():
 	#else:
 	return str($Lobby/TextEdit.text)
 
-@rpc("reliable", "any_peer", "call_local")
+@rpc("any_peer")
 func spawn_car(id = 1):
+	if !multiplayer.is_server():
+		return
 	print(" --- Spawned Car ID: {0}".format([id]))
 	var car = load("res://vehicles/car_base.tscn")
 	var autko = car.instantiate()
