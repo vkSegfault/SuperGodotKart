@@ -5,8 +5,8 @@ const PORT = 12077
 const MAX_PLAYERS = 8
 
 var temp_lineedit_ip = LineEdit.new()
-
 var peer = ENetMultiplayerPeer.new()
+@export var password: String
 
 @onready var msg = $Chat/Message
 @onready var msg_window = $Chat/MessageWindow
@@ -28,7 +28,7 @@ func _ready():
 	temp_lineedit_ip.position.y = 260
 	self.add_child(temp_lineedit_ip)
 
-
+@warning_ignore("unused_parameter")
 func _process(delta):
 	#print( multiplayer.get_instance_id() )
 	pass
@@ -39,10 +39,15 @@ func _process(delta):
 		##print(multiplayer.get_peers())
 
 func _on_host_button_pressed():
+	print("_on_host_button_pressed")
 	if username.text == "":
 		$NoUsernameWarning.visible = true
 		return
-	print("_on_host_button_pressed")
+	print("Setting password to: " + $Lobby/Password.text)
+	password = $Lobby/Password.text
+	print( "Password is: " + password )
+	print( "Peers before setting rpc password: " + str(multiplayer.get_peers()) )
+	
 	peer.create_server(PORT, MAX_PLAYERS)
 	multiplayer.multiplayer_peer = peer
 	
@@ -58,17 +63,31 @@ func _on_host_button_pressed():
 	$Chat.visible = true
 
 func _on_join_button_pressed():
+	print("_on_join_button_pressed")
+	
 	if username.text == "":
 		$NoUsernameWarning.visible = true
 		return
-	print("_on_join_button_pressed")
+	
+	# first connect peer to server so we can later ask server for password
+	peer.create_client(ADDRESS, PORT)
+	multiplayer.multiplayer_peer = peer
+	
+	#if $Lobby/Password.text != password:
+		## we can either make rpc call from server to set this variable (but when? - some instances may not run already?)
+		## or make some getter func from peer to servert to fetch actual password
+		#print( "Provided password: " + $Lobby/Password.text + " Actual password: " + password )
+		#$NoPasswordWarning.visible = true
+		#return
+	#multiplayer.is_connected()
+	# not all nodes inside car scene are initialized in time (and server tries to call spawner node when there is still none)
+	#spawn_car(multiplayer.get_unique_id())
+	#rpc("spawn_car", multiplayer.get_unique_id() )
+	
 	#ADDRESS = $Lobby/TextEdit.text
 	print("LineEdit text: " + temp_lineedit_ip.get_text())
 	temp_lineedit_ip.visible = false
 	ADDRESS = temp_lineedit_ip.text
-	peer.create_client(ADDRESS, PORT)
-	#get_tree().set_multiplayer(multiplayer, self.get_path())
-	multiplayer.multiplayer_peer = peer
 	
 	$Lobby.visible = false
 	spawn_label("CLIENT")
@@ -77,8 +96,11 @@ func _on_join_button_pressed():
 
 # to make spawning on clients side work we need both MultiSpawner Node with car scene and below signal spawning exact sam car scene
 func _on_peer_connected(peer_id):
-	# this wont be executed by server - only peers
-	# we need to spawn car on server manually
+	# while Engine passes here peer_id of every new peer, this function (actually every function connected to `peer_connected` signal) is fired only on server side
+	# and it's proper way because we should spawn objects only on server and then and only then MultiplayerSpawner should replicate them
+	print("_on_peer_connected")
+	# somehow spawning remote nodes is safe when done inside _on_peer_connected but everywhere else it fails cause of not loaded nodes
+	# like it ensures that all nodes of car scene are loaded before server attempts to replicate it via MultiplayerSpawner node
 	spawn_car(peer_id)
 	print("Peer Connected, peer_id: {0}".format([peer_id]))
 	
@@ -97,21 +119,20 @@ func get_ip_text():
 	#else:
 	return str($Lobby/TextEdit.text)
 
-
+@rpc("reliable", "any_peer", "call_local")
 func spawn_car(id = 1):
-	print("Spawned Car ID: {0}".format([id]))
+	print(" --- Spawned Car ID: {0}".format([id]))
 	var car = load("res://vehicles/car_base.tscn")
 	var autko = car.instantiate()
 	autko.name = str(id)   # set particular instance name
 	#autko.translate(Vector3(10, 0, 2))
 	self.add_child(autko)
 
-
 func despawn_car(id = 1):
+	print("Despawning car")
 	if not self.has_node(str(id)):
 		return
 	self.get_node(str(id)).queue_free()
-
 
 @rpc("any_peer", "call_local")
 func rpc_func():
@@ -125,20 +146,20 @@ func spawn_label(text: String):
 	host_label.text = text
 	self.add_child(host_label)
 
-
 func _on_send_button_pressed():
 	# if there is nothing typed just skip sending message
 	if msg.text == "":
 		return
 	rpc( "rpc_send_message", str( username.text + "(" + str(multiplayer.get_unique_id()) + ")"), msg.text )
 	msg.text = ""
-	
-@rpc("any_peer", "call_local")
-func rpc_send_message(username, msg):
-	msg_window.text += str(str(username) + ": " + msg + "\n")
-	msg_window.scroll_vertical = 9999   # hack so that messages are auto scrolled to see only latest ones
 
+@rpc("any_peer", "call_local")
+func rpc_send_message(username_param, msg_param):
+	msg_window.text += str(str(username_param) + ": " + msg_param + "\n")
+	msg_window.scroll_vertical = 9999   # hack so that messages are auto scrolled to see only latest ones
 
 func _on_close_button_pressed():
 	$NoUsernameWarning.visible = false
 
+func _on_close_button_pressed_password():
+	$NoPasswordWarning.visible = false

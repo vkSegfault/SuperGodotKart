@@ -9,7 +9,6 @@ static var NUM_OF_RUN = 0
 
 var _steer_target := 0.0
 
-@onready var synchronizer = $MultiplayerSynchronizer
 #@onready var camera = $CameraBase/Camera3D
 @onready var camera = $Body/Camera3D
 
@@ -83,7 +82,7 @@ func _physics_process(delta: float):
 		#print("It's not multiplayer authority!!!")
 		pass
 
-
+@warning_ignore("unused_parameter", "unreachable_code")
 func _process(delta):
 	return
 	if multiplayer.get_peers().size() > 0:
