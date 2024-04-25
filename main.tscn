@@ -1,29 +1,23 @@
-[gd_scene load_steps=5 format=3 uid="uid://b2msv136hleos"]
+[gd_scene load_steps=4 format=3 uid="uid://b2msv136hleos"]
 
-[ext_resource type="PackedScene" uid="uid://dgjg1277k20sw" path="res://map1.tscn" id="1_3jbut"]
 [ext_resource type="Script" path="res://main.gd" id="1_6yvk6"]
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_dc1es"]
-properties/0/path = NodePath(".:password")
-properties/0/spawn = true
-properties/0/replication_mode = 1
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_epcb7"]
 properties/0/path = NodePath("Chat/MessageWindow:text")
 properties/0/spawn = true
 properties/0/replication_mode = 1
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_dc1es"]
+properties/0/path = NodePath(".:password")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+
 [node name="Main" type="Node"]
 script = ExtResource("1_6yvk6")
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("res://vehicles/car_base.tscn")
-spawn_path = NodePath("..")
+[node name="Levels" type="Node3D" parent="."]
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
-replication_config = SubResource("SceneReplicationConfig_dc1es")
-
-[node name="map1" parent="." instance=ExtResource("1_3jbut")]
+[node name="Cars" type="Node3D" parent="."]
 
 [node name="Lobby" type="Control" parent="."]
 layout_mode = 3
@@ -166,6 +160,17 @@ offset_top = 46.0
 offset_right = 182.0
 offset_bottom = 77.0
 text = "Close"
+
+[node name="MultiplayerSpawner_Levels" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://map1.tscn")
+spawn_path = NodePath("../Levels")
+
+[node name="MultiplayerSpawner_Cars" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://vehicles/car_base.tscn")
+spawn_path = NodePath("../Cars")
+
+[node name="MultiplayerSynchronizer_password" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_dc1es")
 
 [connection signal="pressed" from="Lobby/HostButton" to="." method="_on_host_button_pressed"]
 [connection signal="pressed" from="Lobby/JoinButton" to="." method="_on_join_button_pressed"]

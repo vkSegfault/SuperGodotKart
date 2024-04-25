@@ -12,13 +12,14 @@ var temp_lineedit_ip = LineEdit.new()
 @onready var username = $Lobby/Username
 
 func _ready():
+	#get_tree().paused = true
 	$Chat.visible = false
 	
 	print("_ready")
 	print("IP Address: " + str(IP.get_local_addresses().size()) )
 	for ip in IP.get_local_addresses():
 		print(ip)
-		
+	
 	# temp
 	temp_lineedit_ip.text = "127.0.0.1"
 	temp_lineedit_ip.placeholder_text = "127.0.0.1"
@@ -54,7 +55,9 @@ func _on_host_button_pressed():
 	# make signal connection, not run immediatelly, it will run when `peer_connected` signal is trigerred
 	multiplayer.peer_connected.connect(_on_peer_connected)  # _on_peer_connected is going to spawn car for every other peer (not server)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	spawn_car()  # spawn car locally (on server)
+	#spawn_level( "res://map1.tscn" )
+	spawn_car()  # spawn car locally (on server) and Spawner will replicate it to other peers
+	spawn_level("res://map1.tscn")
 	
 	$Lobby.visible = false
 	temp_lineedit_ip.visible = false
@@ -77,7 +80,7 @@ func _on_join_button_pressed():
 	
 	# wait until peer is connected to sever (so Synchronizer node will sync password values across all peers)
 	while peer.get_connection_status() != peer.CONNECTION_CONNECTED:
-		print( "-- PEER NOT CONNECTED --" )
+		print( "-- PEER NOT CONNECTED - WAITING... --" )
 		await get_tree().create_timer(0.1).timeout
 	
 	if $Lobby/Password.text != password:
@@ -88,9 +91,9 @@ func _on_join_button_pressed():
 	# not all nodes inside car scene are initialized in time (and server tries to call spawner node when there is still none)
 	print( "-- PASSWORD CORRECT --" )
 	
-	#spawn_car().rpc( multiplayer.get_unique_id() )
-	rpc_id( 1, "spawn_car", multiplayer.get_unique_id() )  # run exactly on peer no. 1 which is server
-	print( "Multiplayer get peers: " + str(multiplayer.get_peers()) )
+	spawn_level.rpc_id( 1, "res://map1.tscn", multiplayer.get_unique_id() )
+	spawn_car.rpc_id( 1, multiplayer.get_unique_id() )   # spawn car on server as well! (but here calls comes from remote peer)
+	#rpc_id( 1, "spawn_car", multiplayer.get_unique_id() )  # run exactly on peer 1 which is server
 	
 	#ADDRESS = $Lobby/TextEdit.text
 	print("LineEdit text: " + temp_lineedit_ip.get_text())
@@ -131,14 +134,28 @@ func get_ip_text():
 
 @rpc("any_peer")
 func spawn_car(id = 1):
+	print("##### spawn_car() #####")
 	if !multiplayer.is_server():
+		# never spawn object on peer if using MultiplayerSpawner node
 		return
-	print(" --- Spawned Car ID: {0}".format([id]))
+	print( "Multiplayer get peers: " + str(multiplayer.get_peers()) )
 	var car = load("res://vehicles/car_base.tscn")
 	var autko = car.instantiate()
 	autko.name = str(id)   # set particular instance name
 	#autko.translate(Vector3(10, 0, 2))
-	self.add_child(autko)
+	$Cars.add_child(autko)
+	print(" --- Spawned Car ID: {0}".format([id]))
+
+@rpc("any_peer")
+func spawn_level(scene_path: String, id = 1):
+	print("##### spawn_level() #####")
+	if !multiplayer.is_server():
+		# never spawn object on peer side if using MultiplayerSpawner node
+		return 
+	var map = load(scene_path)
+	var level = map.instantiate()
+	level.name = str(id)
+	$Levels.add_child(level)
 
 func despawn_car(id = 1):
 	print("Despawning car")

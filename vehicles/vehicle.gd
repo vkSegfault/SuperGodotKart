@@ -3,8 +3,6 @@ extends Node3D
 const STEER_SPEED = 1.5
 const STEER_LIMIT = 0.4
 
-static var NUM_OF_RUN = 0
-
 @export var engine_force_value := 40.0
 
 var _steer_target := 0.0
@@ -25,29 +23,27 @@ func _ready():
 	# makes every instance of this CAR an authority to itself - so it can ride on it's own
 	# without it only server would be able to control all spawned cars
 	# go up, because we set name of instance which here is `CarBase` root node, if we just call name it will be from current node that this script is atatched to
-	print("Name of Car instance: " + str(name))  
+	print( "Name of Car instance: " + str(name) )
 	#synchronizer.set_multiplayer_authority(str(get_node("..").name).to_int())   # here using synchronizer node but we can use any node we want
 	#get_node("..").set_multiplayer_authority(str(get_node("..").name).to_int())   # here setting authority for CarBase root node
 	
-	#var ms = MultiplayerSpawner.new()
-	
-	print("###################")
-	print("Is multiplayer authority: " + str(is_multiplayer_authority()))
-	print("Remote sender id: " + str(multiplayer.get_remote_sender_id()))
+	print( "###################" )
+	print( "Is multiplayer authority: " + str(is_multiplayer_authority()) )
+	print( "Remote sender id: " + str(multiplayer.get_remote_sender_id()) )
 	# Set current camera only to this instance itsefl
-	camera.current = is_multiplayer_authority()
-	NUM_OF_RUN += 1
-	print("_ready of vehicle executed " + str(NUM_OF_RUN) + " times" )
-	print("unique id: " + str(multiplayer.get_unique_id())  )
-	print("[vehicle.gd] " + str(name) + " is multiplayer authority on " + str(multiplayer.get_unique_id()) + ": " + str(is_multiplayer_authority()) )
-	print("[vehicle.gd] " + "Camera " + str(name) + " is current on " + str(multiplayer.get_unique_id()) + ": " + str(camera.current) )
-	print("###################")
+	if is_multiplayer_authority():
+		camera.make_current()
+	#camera.current = is_multiplayer_authority()
+	print( "unique id: " + str(multiplayer.get_unique_id()) )
+	print( "[vehicle.gd] " + str(name) + " is multiplayer authority on " + str(multiplayer.get_unique_id()) + ": " + str(is_multiplayer_authority()) )
+	print( "[vehicle.gd] " + "Camera " + str(name) + " is current on " + str(multiplayer.get_unique_id()) + ": " + str(camera.current) )
+	print( "###################" )
 
 func _physics_process(delta: float):
 	#if get_multiplayer_authority() == multiplayer.get_unique_id()   # this also checks if currently running instance is authority
 	# why is this important?
 	# it's because this exact script (alongside whole scene) is executed on all peers but should be only controlled by peer which is the owner of the car
-	if is_multiplayer_authority():   # we can check if this node (or any parent node becausde inheritance) is authority
+	if is_multiplayer_authority():   # we can check if this node (or any parent node because OF inheritance) is authority
 		var car_body: VehicleBody3D = $Body
 		var fwd_mps := (car_body.linear_velocity * car_body.transform.basis).x
 
