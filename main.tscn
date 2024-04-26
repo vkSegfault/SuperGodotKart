@@ -1,6 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://b2msv136hleos"]
+[gd_scene load_steps=6 format=3 uid="uid://b2msv136hleos"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_6yvk6"]
+[ext_resource type="PackedScene" uid="uid://drinprblemj5u" path="res://vehicles/trailer_truck.tscn" id="2_cetgi"]
+[ext_resource type="PackedScene" uid="uid://btay1c5o7mf8b" path="res://run_inherited.tscn" id="3_tos1p"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_epcb7"]
 properties/0/path = NodePath("Chat/MessageWindow:text")
@@ -171,6 +173,17 @@ spawn_path = NodePath("../Cars")
 
 [node name="MultiplayerSynchronizer_password" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_dc1es")
+
+[node name="Truck_animation" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.11057)
+
+[node name="TrailerTruck" parent="Truck_animation" instance=ExtResource("2_cetgi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.99998, 0, 0.146213)
+
+[node name="Players" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.720954, 4.14163)
+
+[node name="run" parent="Players" instance=ExtResource("3_tos1p")]
 
 [connection signal="pressed" from="Lobby/HostButton" to="." method="_on_host_button_pressed"]
 [connection signal="pressed" from="Lobby/JoinButton" to="." method="_on_join_button_pressed"]

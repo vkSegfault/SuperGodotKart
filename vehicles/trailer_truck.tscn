@@ -1,13 +1,27 @@
-[gd_scene load_steps=8 format=3 uid="uid://drinprblemj5u"]
+[gd_scene load_steps=9 format=3 uid="uid://drinprblemj5u"]
 
-[ext_resource type="Script" path="res://vehicles/vehicle.gd" id="1_wetfm"]
-[ext_resource type="ArrayMesh" uid="uid://s3nm456cy46b" path="res://vehicles/meshes/wheel.res" id="2_2mkj4"]
-[ext_resource type="ArrayMesh" uid="uid://bjqn7crf4tlke" path="res://vehicles/meshes/truck_cab.res" id="3_8j276"]
+[ext_resource type="ArrayMesh" uid="uid://cncwd2gkbh3ow" path="res://vehicles/meshes/wheel.res" id="2_2mkj4"]
+[ext_resource type="ArrayMesh" uid="uid://4halkhp7lv2m" path="res://vehicles/meshes/truck_cab.res" id="3_8j276"]
 [ext_resource type="Script" path="res://vehicles/follow_camera.gd" id="4_4yhuf"]
-[ext_resource type="ArrayMesh" uid="uid://c01p2iyko2mx7" path="res://vehicles/meshes/truck_trailer.res" id="5_cgx5y"]
+[ext_resource type="ArrayMesh" uid="uid://lb686dcwfqrr" path="res://vehicles/meshes/truck_trailer.res" id="5_cgx5y"]
 
 [sub_resource type="BoxShape3D" id="14"]
 size = Vector3(1.3392, 1.04159, 2.3947)
+
+[sub_resource type="Animation" id="Animation_5ee7x"]
+resource_name = "animate_trailer"
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Trailer")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, -0.00169557, 0.637902, -2.78118, 1, 1, -0.00169557, 1.6379, -2.78118)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ll01h"]
+_data = {
+"animate_trailer": SubResource("Animation_5ee7x")
+}
 
 [sub_resource type="BoxShape3D" id="6"]
 size = Vector3(1.49783, 1.38835, 3.94168)
@@ -17,7 +31,6 @@ size = Vector3(1.49783, 1.38835, 3.94168)
 [node name="Body" type="VehicleBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00169557, 0.222867, -0.0955184)
 center_of_mass_mode = 1
-script = ExtResource("1_wetfm")
 
 [node name="Wheel1" type="VehicleWheel3D" parent="Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.573678, 0.000773743, 1.10416)
@@ -97,6 +110,12 @@ height = 2.5
 [node name="Trailer" type="VehicleBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00169557, 0.637902, -2.78118)
 center_of_mass_mode = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Trailer"]
+root_node = NodePath("../..")
+libraries = {
+"": SubResource("AnimationLibrary_ll01h")
+}
 
 [node name="TWheel1" type="VehicleWheel3D" parent="Trailer"]
 transform = Transform3D(1, 0, 0, 0, 1, -1.49012e-08, 0, 0, 1, 0.573678, -0.402732, -1.53277)
